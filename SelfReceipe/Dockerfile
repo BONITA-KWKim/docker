@@ -1,0 +1,25 @@
+FROM centos:7
+
+MAINTAINER Kyungown.N.KIM <noberto.kyungwon@gmail.com>
+
+RUN yum -y update && yum -y upgrade
+
+RUN yum install -y https://centos7.iuscommunity.org/ius-release.rpm
+RUN yum install -y python36u python36u-libs python36u-devel python36u-pip nginx gcc
+RUN python3.6 -m pip install --upgrade pip
+RUN python3.6 -m pip install django
+
+
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+
+#Django
+RUN mkdir /src
+WORKDIR /src
+RUN django-admin startproject firstDjango
+
+EXPOSE 8000
+STOPSIGNAL SIGINT
+ENTRYPOINT ["python3.6", "manage.py"]
+CMD ["runserver", "0.0.0.0:8000"]
+
+
