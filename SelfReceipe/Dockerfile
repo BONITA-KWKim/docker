@@ -1,26 +1,15 @@
-FROM centos:7
+FROM python:3.6
 
-MAINTAINER Kyungown.N.KIM <noberto.kyungwon@gmail.com>
+RUN mkdir -p /opt/services/djangoapp/src
+WORKDIR /opt/services/djangoapp/src
 
-RUN yum -y update && yum -y upgrade
+RUN pip install gunicorn django psycopg2 
+#COPY Pipfile Pipfile.lock //opt/services/djangoapp/src/
+#RUN pip install pipenv && pipenv install -- system
 
-RUN yum install -y https://centos7.iuscommunity.org/ius-release.rpm
-RUN yum install -y python36u python36u-libs python36u-devel python36u-pip nginx gcc
-RUN python3.6 -m pip install --upgrade pip
-RUN python3.6 -m pip install django
-
-
-RUN echo "daemon off;" >> /etc/nginx/nginx.conf
-
-#Django
-RUN mkdir /src
-WORKDIR /src
-RUN django-admin startproject firstDjango
+COPY . /opt/services/djangoapp/src
+RUN cd hello && python manage.py collectstatic --no-input
 
 EXPOSE 8000
-STOPSIGNAL SIGINT
-#ENTRYPOINT ["python3.6", "manage.py"]
-#CMD ["runserver", "0.0.0.0:8000"]
-WORKDIR /src/firstDjango
-CMD ["python3.6", "manage.py", "runserver", "0.0.0.0:8000"]
 
+CMD ["gunicorn", "--chdir", "hello", "--bind", ":8000", "hello.wsgi:application"]
